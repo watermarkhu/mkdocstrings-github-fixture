@@ -23,11 +23,6 @@ inputs:
     description: 'A choice input parameter'
     required: false
     default: 'option1'
-    type: choice
-    options:
-      - option1
-      - option2
-      - option3
   input-multiline:
     description: |
       A multiline input parameter description
@@ -38,10 +33,13 @@ inputs:
 outputs:
   output-string:
     description: 'A string output from the action'
+    value: 'result-value'
   output-number:
     description: 'A numeric output from the action'
+    value: 123
   output-json:
     description: 'A JSON output containing complex data'
+    value: '{"key": "value", "number": 456}'
 
 runs:
   using: 'composite'

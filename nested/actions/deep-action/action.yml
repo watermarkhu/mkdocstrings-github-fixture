@@ -10,6 +10,7 @@ inputs:
 outputs:
   nested-output:
     description: 'Output from the nested action'
+    value: 'nested-value'
 
 runs:
   using: 'composite'

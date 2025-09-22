@@ -15,11 +15,6 @@ inputs:
   environment:
     description: 'Target environment for deployment'
     required: true
-    type: choice
-    options:
-      - development
-      - staging
-      - production
   version:
     description: 'Version number to deploy'
     required: true
@@ -27,12 +22,10 @@ inputs:
     description: 'Whether to perform a dry run'
     required: false
     default: 'false'
-    type: boolean
   timeout:
     description: 'Timeout in seconds'
     required: false
     default: '300'
-    type: number
   configuration:
     description: |
       JSON configuration object for the deployment.
@@ -51,18 +44,23 @@ inputs:
 outputs:
   deployment-id:
     description: 'Unique identifier for the deployment'
+    value: ${{ steps.deploy.outputs.deployment-id }}
   deployment-url:
     description: 'URL of the deployed application'
+    value: ${{ steps.deploy.outputs.deployment-url }}
   deployment-status:
     description: 'Status of the deployment (success, failed, pending)'
+    value: ${{ steps.deploy.outputs.deployment-status }}
   deployment-logs:
     description: 'Logs from the deployment process'
+    value: ${{ steps.deploy.outputs.deployment-logs }}
   deployment-metrics:
     description: |
       JSON object containing deployment metrics such as:
       - Duration in seconds
       - Number of files processed
       - Success rate
+    value: ${{ steps.deploy.outputs.deployment-metrics }}
 
 runs:
   using: 'composite'

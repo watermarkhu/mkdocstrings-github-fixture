@@ -23,25 +23,14 @@ inputs:
     description: 'Whether to run npm install before execution'
     required: false
     default: 'true'
-    type: boolean
   package-manager:
     description: 'Package manager to use'
     required: false
     default: 'npm'
-    type: choice
-    options:
-      - npm
-      - yarn
-      - pnpm
   environment:
     description: 'Environment for the JavaScript execution'
     required: false
     default: 'production'
-    type: choice
-    options:
-      - development
-      - staging
-      - production
   custom-arguments:
     description: 'Custom arguments to pass to the script'
     required: false
@@ -49,7 +38,6 @@ inputs:
     description: 'Timeout for script execution in milliseconds'
     required: false
     default: '30000'
-    type: number
 
 outputs:
   script-output:

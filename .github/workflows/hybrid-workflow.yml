@@ -10,11 +10,7 @@ on:
       operation:
         description: 'Operation to perform'
         required: true
-        type: choice
-        options:
-          - 'validate'
-          - 'process'
-          - 'finalize'
+        type: string
       configuration:
         description: 'Service configuration in JSON format'
         required: false
