@@ -1,0 +1,91 @@
+name: 'Complex Action with Advanced Features'
+description: |
+  A complex GitHub Action demonstrating advanced features including
+  environment variables, secrets handling, and multiple input types.
+  This action is designed to test comprehensive documentation generation
+  capabilities of the mkdocstrings-github module.
+
+author: 'Test Fixture Repository'
+
+branding:
+  icon: 'settings'
+  color: 'green'
+
+inputs:
+  environment:
+    description: 'Target environment for deployment'
+    required: true
+  version:
+    description: 'Version number to deploy'
+    required: true
+  dry-run:
+    description: 'Whether to perform a dry run'
+    required: false
+    default: 'false'
+  timeout:
+    description: 'Timeout in seconds'
+    required: false
+    default: '300'
+  configuration:
+    description: |
+      JSON configuration object for the deployment.
+      Example:
+      {
+        "retries": 3,
+        "parallel": true,
+        "notifications": ["email", "slack"]
+      }
+    required: false
+    default: '{}'
+  tags:
+    description: 'Comma-separated list of tags'
+    required: false
+
+outputs:
+  deployment-id:
+    description: 'Unique identifier for the deployment'
+    value: ${{ steps.deploy.outputs.deployment-id }}
+  deployment-url:
+    description: 'URL of the deployed application'
+    value: ${{ steps.deploy.outputs.deployment-url }}
+  deployment-status:
+    description: 'Status of the deployment (success, failed, pending)'
+    value: ${{ steps.deploy.outputs.deployment-status }}
+  deployment-logs:
+    description: 'Logs from the deployment process'
+    value: ${{ steps.deploy.outputs.deployment-logs }}
+  deployment-metrics:
+    description: |
+      JSON object containing deployment metrics such as:
+      - Duration in seconds
+      - Number of files processed
+      - Success rate
+    value: ${{ steps.deploy.outputs.deployment-metrics }}
+
+runs:
+  using: 'composite'
+  steps:
+    - name: Validate inputs
+      run: |
+        echo "Validating deployment parameters"
+        echo "Environment: ${{ inputs.environment }}"
+        echo "Version: ${{ inputs.version }}"
+        echo "Dry run: ${{ inputs.dry-run }}"
+        echo "Timeout: ${{ inputs.timeout }}"
+      shell: bash
+      
+    - name: Parse configuration
+      run: |
+        echo "Parsing configuration: ${{ inputs.configuration }}"
+        echo "Tags: ${{ inputs.tags }}"
+      shell: bash
+      
+    - name: Simulate deployment
+      run: |
+        deployment_id="deploy-$(date +%s)"
+        echo "deployment-id=${deployment_id}" >> $GITHUB_OUTPUT
+        echo "deployment-url=https://app.example.com/${deployment_id}" >> $GITHUB_OUTPUT
+        echo "deployment-status=success" >> $GITHUB_OUTPUT
+        echo "deployment-logs=Deployment completed successfully at $(date)" >> $GITHUB_OUTPUT
+        echo "deployment-metrics={\"duration\": 45, \"files\": 128, \"success_rate\": 100}" >> $GITHUB_OUTPUT
+      shell: bash

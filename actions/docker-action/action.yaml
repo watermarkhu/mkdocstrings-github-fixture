@@ -1,0 +1,70 @@
+name: 'Docker-based Action'
+description: |
+  A GitHub Action that runs using Docker container.
+  This action demonstrates Docker-based execution and
+  is useful for testing documentation generation for
+  different action types.
+
+author: 'mkdocstrings-github fixture'
+
+branding:
+  icon: 'box'
+  color: 'purple'
+
+inputs:
+  dockerfile-path:
+    description: 'Path to the Dockerfile'
+    required: false
+    default: 'Dockerfile'
+  build-args:
+    description: 'Build arguments for Docker in key=value format, separated by newlines'
+    required: false
+  environment-variables:
+    description: 'Environment variables to pass to the container'
+    required: false
+  working-directory:
+    description: 'Working directory inside the container'
+    required: false
+    default: '/workspace'
+  entrypoint:
+    description: 'Custom entrypoint for the container'
+    required: false
+  command:
+    description: 'Command to run inside the container'
+    required: true
+    default: 'echo "Hello from Docker container"'
+
+outputs:
+  container-id:
+    description: 'ID of the Docker container that was run'
+  exit-code:
+    description: 'Exit code from the container execution'
+  logs:
+    description: 'Logs from the container execution'
+
+runs:
+  using: 'docker'
+  image: 'ubuntu:22.04'
+  env:
+    CUSTOM_ENV: ${{ inputs.environment-variables }}
+    WORK_DIR: ${{ inputs.working-directory }}
+  entrypoint: '/bin/bash'
+  args:
+    - '-c'
+    - |
+      echo "Starting Docker-based action"
+      echo "Working directory: $WORK_DIR"
+      echo "Environment variables: $CUSTOM_ENV"
+      echo "Executing command: ${{ inputs.command }}"
+      
+      # Create working directory
+      mkdir -p "$WORK_DIR"
+      cd "$WORK_DIR"
+      
+      # Execute the provided command
+      ${{ inputs.command }}
+      
+      # Capture results
+      echo "container-id=$(hostname)" >> $GITHUB_OUTPUT
+      echo "exit-code=$?" >> $GITHUB_OUTPUT
+      echo "logs=Docker action completed successfully" >> $GITHUB_OUTPUT

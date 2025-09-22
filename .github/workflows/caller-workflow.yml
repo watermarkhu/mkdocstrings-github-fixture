@@ -1,0 +1,96 @@
+name: 'Caller Workflow - Uses Reusable Workflow'
+
+on:
+  workflow_dispatch:
+    inputs:
+      deployment-environment:
+        description: 'Environment to deploy to'
+        required: true
+        type: choice
+        options:
+          - 'development'
+          - 'staging'
+          - 'production'
+        default: 'development'
+      application-version:
+        description: 'Version to deploy'
+        required: false
+        type: string
+        default: 'latest'
+      enable-notifications:
+        description: 'Send notifications after deployment'
+        required: false
+        type: boolean
+        default: true
+      parallel-jobs:
+        description: 'Number of parallel deployment jobs'
+        required: false
+        type: number
+        default: 2
+
+permissions:
+  contents: read
+  deployments: write
+  pull-requests: write
+
+jobs:
+  pre-deployment:
+    name: 'Pre-deployment Setup'
+    runs-on: ubuntu-latest
+    outputs:
+      config: ${{ steps.config.outputs.config }}
+    steps:
+      - name: Prepare deployment configuration
+        id: config
+        run: |
+          config=$(cat << EOF
+          {
+            "retries": 3,
+            "timeout": 600,
+            "health_check": true,
+            "backup": true,
+            "rollback_on_failure": true
+          }
+          EOF
+          )
+          # Remove newlines and format as single line
+          config=$(echo $config | tr -d '\n' | tr -s ' ')
+          echo "config=${config}" >> $GITHUB_OUTPUT
+          echo "Generated deployment configuration"
+
+  call-reusable-workflow:
+    name: 'Deploy via Reusable Workflow'
+    needs: pre-deployment
+    uses: ./.github/workflows/reusable-workflow.yml
+    with:
+      environment: ${{ inputs.deployment-environment }}
+      version: ${{ inputs.application-version }}
+      enable-notifications: ${{ inputs.enable-notifications }}
+      parallel-jobs: ${{ inputs.parallel-jobs }}
+      configuration: ${{ needs.pre-deployment.outputs.config }}
+    secrets:
+      API_KEY: ${{ secrets.DEPLOYMENT_API_KEY }}
+      DATABASE_URL: ${{ secrets.DATABASE_CONNECTION_STRING }}
+      SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK_URL }}
+
+  post-deployment:
+    name: 'Post-deployment Tasks'
+    runs-on: ubuntu-latest
+    needs: call-reusable-workflow
+    steps:
+      - name: Verify deployment
+        run: |
+          echo "Verifying deployment results:"
+          echo "Deployment ID: ${{ needs.call-reusable-workflow.outputs.deployment-id }}"
+          echo "Deployment URL: ${{ needs.call-reusable-workflow.outputs.deployment-url }}"
+          echo "Success: ${{ needs.call-reusable-workflow.outputs.success }}"
+          
+      - name: Run smoke tests
+        run: |
+          echo "Running smoke tests against: ${{ needs.call-reusable-workflow.outputs.deployment-url }}"
+          echo "✓ All smoke tests passed"
+          
+      - name: Update deployment status
+        run: |
+          echo "Updating deployment status in monitoring systems"
+          echo "Deployment ${{ needs.call-reusable-workflow.outputs.deployment-id }} is live"
