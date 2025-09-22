@@ -1,0 +1,22 @@
+name: 'Simple Action'
+description: 'A simple GitHub Action with minimal configuration'
+
+inputs:
+  message:
+    description: 'Message to display'
+    required: true
+    default: 'Hello World'
+
+outputs:
+  result:
+    description: 'The result of the action'
+
+runs:
+  using: 'composite'
+  steps:
+    - name: Display message
+      run: 'echo "Message: ${{ inputs.message }}"'
+      shell: bash
+    - name: Set output
+      run: 'echo "result=Action completed successfully" >> $GITHUB_OUTPUT'
+      shell: bash

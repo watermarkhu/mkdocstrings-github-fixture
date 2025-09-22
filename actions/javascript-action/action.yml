@@ -1,0 +1,68 @@
+name: 'JavaScript Action'
+description: |
+  A GitHub Action implemented in JavaScript using Node.js.
+  This demonstrates a different action implementation approach
+  for comprehensive documentation testing.
+
+author: 'mkdocstrings-github fixture'
+
+branding:
+  icon: 'code'
+  color: 'yellow'
+
+inputs:
+  script-path:
+    description: 'Path to the JavaScript file to execute'
+    required: false
+    default: 'index.js'
+  node-version:
+    description: 'Node.js version to use'
+    required: false
+    default: '20'
+  npm-install:
+    description: 'Whether to run npm install before execution'
+    required: false
+    default: 'true'
+    type: boolean
+  package-manager:
+    description: 'Package manager to use'
+    required: false
+    default: 'npm'
+    type: choice
+    options:
+      - npm
+      - yarn
+      - pnpm
+  environment:
+    description: 'Environment for the JavaScript execution'
+    required: false
+    default: 'production'
+    type: choice
+    options:
+      - development
+      - staging
+      - production
+  custom-arguments:
+    description: 'Custom arguments to pass to the script'
+    required: false
+  timeout:
+    description: 'Timeout for script execution in milliseconds'
+    required: false
+    default: '30000'
+    type: number
+
+outputs:
+  script-output:
+    description: 'Output from the JavaScript script'
+  execution-time:
+    description: 'Time taken to execute the script in milliseconds'
+  exit-code:
+    description: 'Exit code from script execution'
+  npm-dependencies:
+    description: 'List of installed npm dependencies'
+
+runs:
+  using: 'node20'
+  main: 'dist/index.js'
+  pre: 'dist/pre.js'
+  post: 'dist/post.js'

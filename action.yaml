@@ -1,0 +1,54 @@
+name: 'Root Level Action'
+description: 'A comprehensive root-level GitHub Action for testing documentation generation'
+author: 'mkdocstrings-github test fixture'
+
+branding:
+  icon: 'package'
+  color: 'blue'
+
+inputs:
+  input-string:
+    description: 'A string input parameter'
+    required: true
+    default: 'default-value'
+  input-number:
+    description: 'A numeric input parameter'
+    required: false
+    default: '42'
+  input-boolean:
+    description: 'A boolean input parameter'
+    required: false
+    default: 'false'
+  input-choice:
+    description: 'A choice input parameter'
+    required: false
+    default: 'option1'
+    type: choice
+    options:
+      - option1
+      - option2
+      - option3
+  input-multiline:
+    description: |
+      A multiline input parameter description
+      that spans multiple lines for testing
+      complex documentation scenarios
+    required: false
+
+outputs:
+  output-string:
+    description: 'A string output from the action'
+  output-number:
+    description: 'A numeric output from the action'
+  output-json:
+    description: 'A JSON output containing complex data'
+
+runs:
+  using: 'composite'
+  steps:
+    - name: Execute action logic
+      run: |
+        echo "input-string=${{ inputs.input-string }}" >> $GITHUB_OUTPUT
+        echo "output-number=123" >> $GITHUB_OUTPUT
+        echo "output-json={\"key\": \"value\", \"number\": 456}" >> $GITHUB_OUTPUT
+      shell: bash

@@ -1,0 +1,21 @@
+name: 'Deep Nested Action'
+description: 'A GitHub Action located in a deeply nested directory structure'
+
+inputs:
+  nested-input:
+    description: 'Input for testing nested action discovery'
+    required: false
+    default: 'nested-default'
+
+outputs:
+  nested-output:
+    description: 'Output from the nested action'
+
+runs:
+  using: 'composite'
+  steps:
+    - name: Execute nested action
+      run: |
+        echo "Running from nested location: nested/actions/deep-action"
+        echo "nested-output=Deep nested action executed" >> $GITHUB_OUTPUT
+      shell: bash

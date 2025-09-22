@@ -1,0 +1,156 @@
+name: 'Manual Dispatch Workflow'
+
+on:
+  workflow_dispatch:
+    inputs:
+      action-type:
+        description: 'Type of action to perform'
+        required: true
+        type: choice
+        options:
+          - 'build'
+          - 'test'
+          - 'deploy'
+          - 'cleanup'
+        default: 'build'
+      target-branch:
+        description: 'Branch to target for the action'
+        required: false
+        type: string
+        default: 'main'
+      force-execution:
+        description: 'Force execution even if checks fail'
+        required: false
+        type: boolean
+        default: false
+      custom-parameters:
+        description: |
+          Custom parameters in JSON format.
+          Example: {"timeout": 300, "retries": 3}
+        required: false
+        type: string
+        default: '{}'
+      log-level:
+        description: 'Logging level for the workflow'
+        required: false
+        type: choice
+        options:
+          - 'debug'
+          - 'info'
+          - 'warning'
+          - 'error'
+        default: 'info'
+
+permissions:
+  contents: read
+  actions: write
+  checks: write
+  deployments: write
+  packages: read
+  statuses: write
+
+env:
+  LOG_LEVEL: ${{ inputs.log-level }}
+  FORCE_EXECUTION: ${{ inputs.force-execution }}
+
+jobs:
+  preparation:
+    name: 'Prepare Workflow Execution'
+    runs-on: ubuntu-latest
+    outputs:
+      execution-id: ${{ steps.setup.outputs.execution-id }}
+      should-continue: ${{ steps.checks.outputs.should-continue }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.target-branch }}
+          
+      - name: Setup execution environment
+        id: setup
+        run: |
+          execution_id="manual-$(date +%Y%m%d-%H%M%S)-${{ github.run_number }}"
+          echo "execution-id=${execution_id}" >> $GITHUB_OUTPUT
+          echo "Starting manual workflow execution: ${execution_id}"
+          echo "Action type: ${{ inputs.action-type }}"
+          echo "Target branch: ${{ inputs.target-branch }}"
+          echo "Log level: ${{ inputs.log-level }}"
+          
+      - name: Parse custom parameters
+        run: |
+          echo "Custom parameters: ${{ inputs.custom-parameters }}"
+          
+      - name: Pre-execution checks
+        id: checks
+        run: |
+          should_continue="true"
+          
+          if [[ "${{ inputs.force-execution }}" == "false" ]]; then
+            echo "Performing safety checks..."
+            # Simulate some checks
+            echo "✓ Repository state check passed"
+            echo "✓ Branch protection check passed"
+            echo "✓ Resource availability check passed"
+          else
+            echo "⚠️ Skipping safety checks due to force execution"
+          fi
+          
+          echo "should-continue=${should_continue}" >> $GITHUB_OUTPUT
+
+  execute-action:
+    name: 'Execute ${{ inputs.action-type }}'
+    runs-on: ubuntu-latest
+    needs: preparation
+    if: ${{ needs.preparation.outputs.should-continue == 'true' }}
+    steps:
+      - name: Execute build action
+        if: ${{ inputs.action-type == 'build' }}
+        run: |
+          echo "🔨 Executing build action"
+          echo "Build completed successfully"
+          
+      - name: Execute test action
+        if: ${{ inputs.action-type == 'test' }}
+        run: |
+          echo "🧪 Executing test action"
+          echo "All tests passed"
+          
+      - name: Execute deploy action
+        if: ${{ inputs.action-type == 'deploy' }}
+        run: |
+          echo "🚀 Executing deploy action"
+          echo "Deployment completed successfully"
+          
+      - name: Execute cleanup action
+        if: ${{ inputs.action-type == 'cleanup' }}
+        run: |
+          echo "🧹 Executing cleanup action"
+          echo "Cleanup completed successfully"
+
+  finalize:
+    name: 'Finalize Workflow'
+    runs-on: ubuntu-latest
+    needs: [preparation, execute-action]
+    if: always()
+    steps:
+      - name: Collect results
+        run: |
+          echo "Workflow execution completed"
+          echo "Execution ID: ${{ needs.preparation.outputs.execution-id }}"
+          echo "Action type: ${{ inputs.action-type }}"
+          echo "Status: ${{ job.status }}"
+          
+      - name: Generate summary
+        run: |
+          echo "## Workflow Summary" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "- **Execution ID**: ${{ needs.preparation.outputs.execution-id }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Action Type**: ${{ inputs.action-type }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Target Branch**: ${{ inputs.target-branch }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Force Execution**: ${{ inputs.force-execution }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Log Level**: ${{ inputs.log-level }}" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### Custom Parameters" >> $GITHUB_STEP_SUMMARY
+          echo '```json' >> $GITHUB_STEP_SUMMARY
+          echo '${{ inputs.custom-parameters }}' >> $GITHUB_STEP_SUMMARY
+          echo '```' >> $GITHUB_STEP_SUMMARY

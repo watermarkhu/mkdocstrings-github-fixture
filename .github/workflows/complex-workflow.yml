@@ -1,0 +1,214 @@
+name: 'Complex Workflow with Advanced Features'
+
+on:
+  workflow_dispatch:
+    inputs:
+      matrix-strategy:
+        description: 'Strategy for matrix builds'
+        required: false
+        type: choice
+        options:
+          - 'minimal'
+          - 'full'
+          - 'custom'
+        default: 'minimal'
+      include-experimental:
+        description: 'Include experimental configurations'
+        required: false
+        type: boolean
+        default: false
+      custom-matrix:
+        description: 'Custom matrix configuration in JSON format'
+        required: false
+        type: string
+        default: '{}'
+
+permissions:
+  contents: read
+  actions: read
+  checks: write
+  deployments: write
+  issues: write
+  packages: read
+  pull-requests: write
+  repository-projects: read
+  security-events: write
+  statuses: write
+
+env:
+  GLOBAL_ENV_VAR: 'global-value'
+  MATRIX_STRATEGY: ${{ inputs.matrix-strategy }}
+
+jobs:
+  setup-matrix:
+    name: 'Setup Build Matrix'
+    runs-on: ubuntu-latest
+    outputs:
+      matrix: ${{ steps.matrix.outputs.matrix }}
+      include-experimental: ${{ inputs.include-experimental }}
+    steps:
+      - name: Generate matrix configuration
+        id: matrix
+        run: |
+          case "${{ inputs.matrix-strategy }}" in
+            "minimal")
+              matrix='{"os": ["ubuntu-latest"], "node": ["18"], "include": []}'
+              ;;
+            "full")
+              matrix='{"os": ["ubuntu-latest", "windows-latest", "macos-latest"], "node": ["16", "18", "20"], "include": [{"os": "ubuntu-latest", "node": "20", "experimental": true}]}'
+              ;;
+            "custom")
+              matrix='${{ inputs.custom-matrix }}'
+              ;;
+            *)
+              matrix='{"os": ["ubuntu-latest"], "node": ["18"], "include": []}'
+              ;;
+          esac
+          
+          echo "Generated matrix: $matrix"
+          echo "matrix=$matrix" >> $GITHUB_OUTPUT
+
+  matrix-build:
+    name: 'Matrix Build (${{ matrix.os }}, Node ${{ matrix.node }})'
+    runs-on: ${{ matrix.os }}
+    needs: setup-matrix
+    continue-on-error: ${{ matrix.experimental || false }}
+    strategy:
+      fail-fast: false
+      matrix: ${{ fromJSON(needs.setup-matrix.outputs.matrix) }}
+    env:
+      NODE_VERSION: ${{ matrix.node }}
+      OS_TYPE: ${{ matrix.os }}
+      IS_EXPERIMENTAL: ${{ matrix.experimental || false }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node }}
+          
+      - name: Display environment info
+        run: |
+          echo "OS: ${{ matrix.os }}"
+          echo "Node.js: ${{ matrix.node }}"
+          echo "Experimental: ${{ matrix.experimental || false }}"
+          echo "Runner: ${{ runner.os }}"
+          echo "Architecture: ${{ runner.arch }}"
+          
+      - name: Run matrix-specific tasks
+        run: |
+          echo "Executing tasks for ${{ matrix.os }} with Node.js ${{ matrix.node }}"
+          
+          # Simulate different behavior based on matrix parameters
+          if [[ "${{ matrix.experimental }}" == "true" ]]; then
+            echo "Running experimental features"
+          fi
+          
+          # OS-specific commands
+          case "${{ runner.os }}" in
+            "Linux")
+              echo "Running Linux-specific commands"
+              ;;
+            "Windows")
+              echo "Running Windows-specific commands"
+              ;;
+            "macOS")
+              echo "Running macOS-specific commands"
+              ;;
+          esac
+        shell: bash
+
+  conditional-job:
+    name: 'Conditional Job'
+    runs-on: ubuntu-latest
+    needs: [setup-matrix, matrix-build]
+    if: ${{ needs.setup-matrix.outputs.include-experimental == 'true' }}
+    steps:
+      - name: Run experimental features
+        run: |
+          echo "This job only runs when experimental features are enabled"
+          echo "Matrix strategy was: ${{ env.MATRIX_STRATEGY }}"
+
+  parallel-jobs:
+    name: 'Parallel Job ${{ matrix.job-id }}'
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        job-id: [1, 2, 3]
+    steps:
+      - name: Execute parallel task
+        run: |
+          echo "Executing parallel job ${{ matrix.job-id }}"
+          sleep $((${{ matrix.job-id }} * 2))
+          echo "Parallel job ${{ matrix.job-id }} completed"
+
+  use-actions:
+    name: 'Use Local Actions'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        
+      - name: Use root action
+        uses: ./
+        with:
+          input-string: 'Testing root action'
+          input-number: '123'
+          input-boolean: 'true'
+          
+      - name: Use simple action
+        uses: ./actions/simple-action
+        with:
+          message: 'Testing simple action'
+          
+      - name: Use complex action
+        uses: ./actions/complex-action
+        with:
+          environment: 'development'
+          version: '1.0.0'
+          dry-run: 'true'
+          timeout: '120'
+          
+      - name: Use minimal action
+        uses: ./actions/minimal-action
+
+  deployment-environments:
+    name: 'Deploy to ${{ matrix.environment }}'
+    runs-on: ubuntu-latest
+    environment: 
+      name: ${{ matrix.environment }}
+      url: https://${{ matrix.environment }}.example.com
+    strategy:
+      matrix:
+        environment: [development, staging]
+        exclude:
+          - environment: staging
+    if: ${{ github.event_name == 'workflow_dispatch' }}
+    steps:
+      - name: Deploy to environment
+        run: |
+          echo "Deploying to ${{ matrix.environment }}"
+          echo "Environment URL: https://${{ matrix.environment }}.example.com"
+
+  summary:
+    name: 'Workflow Summary'
+    runs-on: ubuntu-latest
+    needs: [setup-matrix, matrix-build, parallel-jobs, use-actions]
+    if: always()
+    steps:
+      - name: Generate workflow summary
+        run: |
+          echo "## Complex Workflow Summary" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### Configuration" >> $GITHUB_STEP_SUMMARY
+          echo "- **Matrix Strategy**: ${{ inputs.matrix-strategy }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Include Experimental**: ${{ inputs.include-experimental }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Custom Matrix**: \`${{ inputs.custom-matrix }}\`" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### Job Results" >> $GITHUB_STEP_SUMMARY
+          echo "- **Setup Matrix**: ${{ needs.setup-matrix.result }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Matrix Build**: ${{ needs.matrix-build.result }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Parallel Jobs**: ${{ needs.parallel-jobs.result }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Use Actions**: ${{ needs.use-actions.result }}" >> $GITHUB_STEP_SUMMARY

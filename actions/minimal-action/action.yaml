@@ -1,0 +1,8 @@
+name: 'Minimal Action'
+description: 'Minimal action with only required fields'
+
+runs:
+  using: 'composite'
+  steps:
+    - run: echo "Minimal action executed"
+      shell: bash
