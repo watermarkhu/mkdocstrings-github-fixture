@@ -1,6 +1,6 @@
 # mkdocstrings-github-fixture
 
-Fixture repository for testing the mkdocstrings-github auto-documentation module for GitHub Actions and workflows.
+Fixture repository for testing [mkdocstrings-github](https://github.com/watermarkhu/mkdocstrings-github). 
 
 ## Repository Structure
 
