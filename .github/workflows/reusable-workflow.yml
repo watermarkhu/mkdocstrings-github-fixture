@@ -3,48 +3,48 @@ name: 'Reusable Workflow with workflow_call'
 on:
   workflow_call:
     inputs:
-      environment:
+      environment: # group: repository
         description: 'Environment to deploy to'
         required: true
         type: string
-      version:
+      version: # group: repository
         description: 'Version to deploy'
         required: false
         type: string
         default: 'latest'
-      enable-notifications:
+      enable-notifications: 
         description: 'Whether to send notifications'
         required: false
         type: boolean
         default: false
-      parallel-jobs:
+      parallel-jobs: # group: run-time
         description: 'Number of parallel jobs'
         required: false
         type: number
         default: 1
-      configuration:
+      configuration: # group: run-time
         description: 'JSON configuration object'
         required: false
         type: string
         default: '{}'
     secrets:
-      API_KEY:
+      API_KEY: # group: credentials
         description: 'API key for external service'
         required: true
-      DATABASE_URL:
+      DATABASE_URL: # group: credentials
         description: 'Database connection string'
         required: false
-      SLACK_WEBHOOK:
+      SLACK_WEBHOOK: # group: notifications
         description: 'Slack webhook URL for notifications'
         required: false
     outputs:
-      deployment-id:
+      deployment-id: # group: deployment
         description: 'ID of the created deployment'
         value: ${{ jobs.deploy.outputs.deployment-id }}
-      deployment-url:
+      deployment-url: # group: deployment
         description: 'URL of the deployment'
         value: ${{ jobs.deploy.outputs.deployment-url }}
-      success:
+      success: # group: status
         description: 'Whether the deployment was successful'
         value: ${{ jobs.deploy.outputs.success }}
 

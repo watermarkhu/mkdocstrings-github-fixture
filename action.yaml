@@ -7,23 +7,23 @@ branding:
   color: 'blue'
 
 inputs:
-  input-string:
+  input-string: # group: basic
     description: 'A string input parameter'
     required: true
     default: 'default-value'
-  input-number:
+  input-number: # group: basic
     description: 'A numeric input parameter'
     required: false
     default: '42'
-  input-boolean:
+  input-boolean: # group: basic
     description: 'A boolean input parameter'
     required: false
     default: 'false'
-  input-choice:
+  input-choice: # group: advanced
     description: 'A choice input parameter'
     required: false
     default: 'option1'
-  input-multiline:
+  input-multiline: # group: advanced
     description: |
       A multiline input parameter description
       that spans multiple lines for testing
@@ -31,13 +31,13 @@ inputs:
     required: false
 
 outputs:
-  output-string:
+  output-string: # group: simple
     description: 'A string output from the action'
     value: 'result-value'
-  output-number:
+  output-number: # group: simple
     description: 'A numeric output from the action'
     value: 123
-  output-json:
+  output-json: # group: complex
     description: 'A JSON output containing complex data'
     value: '{"key": "value", "number": 456}'
 
