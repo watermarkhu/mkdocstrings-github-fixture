@@ -1,0 +1,41 @@
+name: 'Coverage Test Workflow'
+
+on:
+  workflow_dispatch:
+
+jobs:
+  # Job that calls a workflow - render as a single subroutine node
+  call-workflow:
+    name: 'Job Calling Workflow'
+    uses: ./.github/workflows/reusable-workflow.yml
+    with:
+      environment: 'production'
+
+  # Job with no steps - create a single node
+  no-steps-job:
+    name: 'Job With No Steps'
+    runs-on: ubuntu-latest
+
+  # Job with no named steps - create a single placeholder node
+  unnamed-steps-job:
+    name: 'Job With Unnamed Steps'
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo "This is an unnamed step"
+      - run: |
+          echo "Another unnamed step"
+          echo "With multiple lines"
+
+  # Job with action uses (get rounded rectangle)
+  action-uses-job:
+    name: 'Job With Action Uses'
+    runs-on: ubuntu-latest
+    steps:
+      - name: 'Checkout code'
+        uses: actions/checkout@v4
+      - name: 'Setup Node'
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+      - name: 'Run script'
+        run: echo "Done"
