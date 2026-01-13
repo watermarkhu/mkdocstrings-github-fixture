@@ -1,7 +1,7 @@
 name: 'Coverage Test Workflow'
 
 on:
-  workflow_dispatch:
+  workflow_call:
 
 jobs:
   # Job that calls a workflow - render as a single subroutine node
